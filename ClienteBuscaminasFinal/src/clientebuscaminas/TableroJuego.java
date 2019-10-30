@@ -7,23 +7,11 @@ package clientebuscaminas;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.TreeMap;
 import javax.swing.*;
 
 public class TableroJuego extends JPanel {
 
-    private final int BANDERA_J1 = 11;
-    private final int BANDERA_J2 = 13;
-    private final int BANDERA_J3 = 14;
-    private final int BANDERA_J4 = 15;
-    private final int BASE_1 = 0;
-    private final int MINA = 9;
-    private final int BASE_2 = 10;
-    private final int NO_MINA = 12;
-    private final int NUM_IMAGENES = 16;
-    private final ImageIcon[] IMAGENES;
+    private ImageIcon[] IMAGENES;
     private final int FILAS;
     private final int COLUMNAS;
     private final int TAM_ALTO;
@@ -72,24 +60,73 @@ public class TableroJuego extends JPanel {
         this.texto.setText("Banderas Restantes: " + minasRes);
         this.tiempo = tiempo;
         this.setLayout(new GridLayout(FILAS, COLUMNAS));
-        this.IMAGENES = new ImageIcon[NUM_IMAGENES];
+        crearImagenes(Constantes.NUM_IMAGENES);
         cargarImagenes();
         this.BOTONES = new Boton[FILAS][COLUMNAS];
         crearBotones();
         inicio = true;
-        Tiempo();
+        iniciarTiempo();
+    }
+    
+    private void crearBotones() {
+        for (int y = 0; y < COLUMNAS; y++) {
+            for (int x = 0; x < FILAS; x++) {
+                BOTONES[x][y] = new Boton(x, y);
+                BOTONES[x][y].setIcon(cargarImagen(Constantes.BASE_2));
+                BOTONES[x][y].setPreferredSize(new Dimension(TAM_ANCHO, TAM_ALTO));
+                BOTONES[x][y].addMouseListener(new EventoClic());
+                this.add(BOTONES[x][y]);
+                BOTONES[x][y].setEnabled(true);
+            }
+        }
+    }
+
+    private void iniciarTiempo() {
+        minutos = 0;
+        segundos = 0;
+        tiempo.setText("Tiempo: 00:00");
+        minutos2 = "";
+        segundos2 = "";
+        t = new Thread() {
+            @Override
+            public void run() {
+                while (true) {
+                    try {
+                        sleep(1000);
+                        segundos++;
+                        if (segundos == 60) {
+                            segundos = 0;
+                            minutos++;
+                        }
+                        minutos2 = (minutos < 10) ? ("0" + minutos) : ("" + minutos);
+                        segundos2 = (segundos < 10) ? ("0" + segundos) : ("" + segundos);
+                        tiempo.setText("Tiempo: " + minutos2 + ":" + segundos2);
+                    } catch (InterruptedException e) {
+                    }
+                }
+            }
+        };
+        t.start();
+    }
+    
+    private void crearImagenes(Constantes valor){
+        this.IMAGENES = new ImageIcon[valor.getValor()];
     }
 
     private void cargarImagenes() {
-        for (int i = 0; i < NUM_IMAGENES; i++) {
+        int numImagenes = Constantes.NUM_IMAGENES.getValor();
+        for (int i = 0; i < numImagenes; i++) {
             String ruta = "/imagenes/" + i + ".png";
             IMAGENES[i] = new ImageIcon((new ImageIcon(this.getClass().getResource(ruta))).getImage().getScaledInstance(TAM_ANCHO, TAM_ALTO, java.awt.Image.SCALE_DEFAULT));
         }
     }
+    
+    public void parar(){
+        this.t.stop();
+    }
 
     public void ponerBandera(int x, int y, int numJugador) {
         BOTONES[x][y].setIcon(obtenerIcono(numJugador));
-        //BOTONES[x][y].setIcon(iconoJugador);
         if (numJugador == NUM_JUGADOR) {
             minasRes--;
             texto.setText("Banderas Restantes: " + minasRes);
@@ -111,118 +148,72 @@ public class TableroJuego extends JPanel {
             this.ADMIN = numAdmin;
         }
     }
+    
+    public void aumentarBanderas() {
+        minasRes++;
+        texto.setText("Banderas Restantes: " + minasRes);
+    }
+    
+    private ImageIcon cargarImagen(Constantes imagen){
+        return IMAGENES[imagen.getValor()];
+    }
+    
+    private ImageIcon getImagen(int valor){
+        if(valor >= Constantes.BASE_1.getValor() && valor < Constantes.MINA.getValor()){
+            return IMAGENES[valor];
+        }
+        return IMAGENES[Constantes.BASE_2.getValor()];
+    }
 
     public void quitarBandera(int x, int y, int numJugador) {
-        BOTONES[x][y].setIcon(IMAGENES[BASE_2]);
+        BOTONES[x][y].setIcon(cargarImagen(Constantes.BASE_2));
         if (numJugador == NUM_JUGADOR) {
             minasRes++;
             texto.setText("Banderas Restantes: " + minasRes);
         }
     }
 
-    public void hayMina(int x, int y, int numJugador) {
-        BOTONES[x][y].setIcon(IMAGENES[MINA]);
+    public void colocarMina(int x, int y, int numJugador) {
+        BOTONES[x][y].setIcon(cargarImagen(Constantes.MINA));
         if (numJugador == NUM_JUGADOR) {
             inicio = false;
-            t.stop();
             JOptionPane.showMessageDialog(this, "Perdiste");
         }
     }
 
-    public void noMina(int x, int y) {
-        BOTONES[x][y].setIcon(IMAGENES[NO_MINA]);
+    public void ponerNoMina(int x, int y) {
+        BOTONES[x][y].setIcon(cargarImagen(Constantes.NO_MINA));
     }
 
-    public void hayMina2(int x, int y) {
-        BOTONES[x][y].setIcon(IMAGENES[MINA]);
+    public void colocarMina2(int x, int y) {
+        BOTONES[x][y].setIcon(cargarImagen(Constantes.MINA));
     }
 
     public void descubrirCampo(int x, int y, int valorCampo) {
-        BOTONES[x][y].setIcon(IMAGENES[valorCampo]);
+            BOTONES[x][y].setIcon(getImagen(valorCampo));
     }
 
     public void descubrirCampo2(int x, int y) {
-        BOTONES[x][y].setIcon(IMAGENES[BASE_1]);
+        BOTONES[x][y].setIcon(cargarImagen(Constantes.BASE_1));
     }
 
     private Icon obtenerIcono(int valor) {
         switch (valor) {
             case 1:
-                return IMAGENES[BANDERA_J1];
+                return cargarImagen(Constantes.BANDERA_J1);
             case 2:
-                return IMAGENES[BANDERA_J2];
+                return cargarImagen(Constantes.BANDERA_J2);
             case 3:
-                return IMAGENES[BANDERA_J3];
+                return cargarImagen(Constantes.BANDERA_J3);
             case 4:
-                return IMAGENES[BANDERA_J4];
+                return cargarImagen(Constantes.BANDERA_J4);
         }
         return null;
-    }
-
-    private void crearBotones() {
-        for (int y = 0; y < COLUMNAS; y++) {
-            for (int x = 0; x < FILAS; x++) {
-                BOTONES[x][y] = new Boton(x, y);
-                BOTONES[x][y].setIcon(IMAGENES[BASE_2]);
-                BOTONES[x][y].setPreferredSize(new Dimension(TAM_ANCHO, TAM_ALTO));
-                BOTONES[x][y].addMouseListener(new EventoClic());
-                this.add(BOTONES[x][y]);
-                BOTONES[x][y].setEnabled(true);
-            }
-        }
-    }
-
-    private void Tiempo() {
-        minutos = 0;
-        segundos = 0;
-        tiempo.setText("Tiempo: 00:00");
-        minutos2 = "";
-        segundos2 = "";
-        t = new Thread() {
-            @Override
-            public void run() {
-                while (true) {
-                    try {
-                        sleep(1000);
-                        segundos++;
-                        if (segundos > 60) {
-                            segundos = 0;
-                            minutos++;
-                        }
-                        minutos2 = (minutos < 10) ? ("0" + minutos) : ("" + minutos);
-                        segundos2 = (segundos < 10) ? ("0" + segundos) : ("" + segundos);
-                        tiempo.setText("Tiempo: " + minutos2 + ":" + segundos2);
-                    } catch (InterruptedException e) {
-                    }
-                }
-            }
-        };
-        t.start();
     }
 
     public void cerrarJuego() {
         JFrame frame = (JFrame) this.getTopLevelAncestor();
         frame.dispose();
-    }
-
-    private class Boton extends JButton {
-
-        private final int X;
-        private final int Y;
-
-        public Boton(int x, int y) {
-            super();
-            this.X = x;
-            this.Y = y;
-        }
-
-        public int getX2() {
-            return this.X;
-        }
-
-        public int getY2() {
-            return this.Y;
-        }
     }
 
     private class EventoClic extends MouseAdapter {
@@ -233,7 +224,7 @@ public class TableroJuego extends JPanel {
 
         @Override
         public void mousePressed(MouseEvent e) {
-            //if (inicio) {
+            if (inicio) {
                 Boton boton = (Boton) e.getSource();
                 String clic = "CLIC";
                 if (e.getButton() == MouseEvent.BUTTON1) {
@@ -243,7 +234,9 @@ public class TableroJuego extends JPanel {
                 }
                 clic += boton.getX2() + "," + boton.getY2() + "," + minasRes;
                 out.println(clic);
-            //}
+            } else {
+                JOptionPane.showMessageDialog(null, "Ya perdiste");
+            }
         }
     }
 }

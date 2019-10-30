@@ -68,11 +68,11 @@ public class Sala {
         this.disponible = disponible;
     }
 
-    public boolean estaDisponible() {
+    public boolean getDisponible() {
         return disponible;
     }
 
-    public boolean estaIniciado() {
+    public boolean getIniciado() {
         return this.iniciado;
     }
 
@@ -100,23 +100,21 @@ public class Sala {
 
     public void enviarDatosJuego() {
         listaJugadores.forEach((jugador) -> {
-            jugador.getPW().println("DATOS " + Juego.FILAS + "," + Juego.COLUMNAS + "," + Juego.TAM_ALTO + "," + Juego.TAM_ANCHO
-                    + ","  + Juego.NUMERO_MINAS + "," + jugador.getID() + "," + this.getAdmin().getID());
-        });
-    }
-    
-    public void enviarDatos(){
-        this.listaJugadores.forEach((jugador) -> {
-            jugador.getPW().println("MESSAGE Ahora eres el jugador " + jugador.getID());
+            jugador.getPW().println("DATOS " + juego.getFILAS() + "," + juego.getCOLUMNAS() + "," + juego.getTAM_ALTO() + "," + juego.getTAM_ANCHO()
+                    + ","  + juego.getNUMERO_MINAS() + "," + jugador.getID() + "," + this.getAdmin().getID());
         });
     }
     
     public void actualizarDatos() {
         this.listaJugadores.forEach((jugador) -> {
-            jugador.getPW().println("ACTUALIZAR " + jugador.getID() + "," + this.getAdmin().getID() + "," + this.listaPerdedores.contains(jugador));
-            if (this.iniciado) {
-                jugador.ponerBanderas();
-            }
+            jugador.getPW().println("ACTUALIZAR " + jugador.getID() + "," + this.Admin.getID() + "," + this.listaPerdedores.contains(jugador));
+            jugador.ponerBanderas();
+        });
+    }
+    
+    public void enviarDatos(){
+        this.listaJugadores.forEach((jugador) -> {
+            jugador.getPW().println("MESSAGE [Servidor] Ahora eres el jugador " + jugador.getID());
         });
     }
 
@@ -124,7 +122,7 @@ public class Sala {
         return this.listaJugadores.size();
     }
 
-    public boolean estaVacia() {
+    public boolean verificarVacio() {
         return this.listaJugadores.isEmpty();
     }
 
@@ -164,10 +162,10 @@ public class Sala {
         return (disponible = checarTam()) && !iniciado;
     }
     
-    public void reiniciarJugadores() {
+    private void reiniciarJugadores() {
         this.listaJugadores.forEach((jugador) -> {
             jugador.reiniciarClic();
-            jugador.setEstado(Jugador.ESTADO_JUGANDO);
+            jugador.reiniciarEstado();
             jugador.reiniciarPuntos();
         });
     }
@@ -185,7 +183,6 @@ public class Sala {
 
     public void iniciarJuego(Jugador jugador) {
         if (getTam() > 1 && !iniciado && this.Admin.equals(jugador)) {
-            //reiniciarJugadores();
             juego = new Juego(this);
             this.iniciado = true;
             this.disponible = false;

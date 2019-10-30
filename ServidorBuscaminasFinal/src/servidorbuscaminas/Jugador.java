@@ -9,11 +9,9 @@ import java.util.ArrayList;
  */
 public class Jugador {
 
-    public static final boolean ESTADO_JUGANDO = true;
-    public static final boolean ESTADO_ESPECTADOR = false;
     private final ArrayList<Campo> listaBanderas;
     private int id;
-    private boolean estado;
+    private int estado;
     private boolean clic;
     private Sala sala;
     private String nombre;
@@ -24,11 +22,15 @@ public class Jugador {
     public Jugador(String nombre, PrintWriter pw) {
         this.nombre = nombre;
         this.pw = pw;
-        this.estado = Jugador.ESTADO_JUGANDO;
+        this.estado = Constantes.JUGADOR_ESTADO_JUGANDO.getValor();
         this.clic = false;
         this.puntos = 0;
         this.listaBanderas = new ArrayList<>();
     }
+    
+    public ArrayList<Campo> getBanderas(){
+        return this.listaBanderas;
+    } 
     
     public boolean sinBanderas(){
         return this.listaBanderas.isEmpty();
@@ -44,7 +46,7 @@ public class Jugador {
     
     public void quitarBanderas() {
         this.listaBanderas.forEach((campo) -> {
-            campo.setEstado(Campo.ESTADO_INICIAL);
+            campo.ocultar();
             campo.quitarAdmin();
             sala.enviarInfo("QUITARBANDERA " + campo.getX() + "," + campo.getY() + "," + this.getID());
         });
@@ -117,11 +119,39 @@ public class Jugador {
         this.pw = pw;
     }
 
-    public boolean getEstado() {
+    public int getEstado() {
         return estado;
     }
 
-    public void setEstado(boolean estado) {
+    public void setEstado(int estado) {
         this.estado = estado;
+    }
+    
+    public void perder(){
+        this.estado = Constantes.JUGADOR_ESTADO_ESPECTADOR.getValor();
+    }
+    
+    public void reiniciarEstado(){
+        this.estado = Constantes.JUGADOR_ESTADO_JUGANDO.getValor();
+    }
+    
+    public boolean verificarSigueJugando(){
+        return this.estado == Constantes.JUGADOR_ESTADO_JUGANDO.getValor();
+    }
+    
+    public boolean checarJ1(){
+        return this.id == Constantes.JUGADOR_J1.getValor();
+    }
+    
+    public boolean checarJ2(){
+        return this.id == Constantes.JUGADOR_J2.getValor();
+    }
+    
+    public boolean checarJ3(){
+        return this.id == Constantes.JUGADOR_J3.getValor();
+    }
+    
+    public boolean checarJ4(){
+        return this.id == Constantes.JUGADOR_J4.getValor();
     }
 }
